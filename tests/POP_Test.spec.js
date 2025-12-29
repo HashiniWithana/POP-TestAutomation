@@ -8,7 +8,7 @@ test('OrthoPoP login and select Point of Pain widget', async ({ page }) => {
   await page.getByRole('textbox', { name: /password/i }).fill('Hashini@123');
   await page.getByRole('button', { name: /log in/i }).click();
 
-  // Wait for dashboard content (update text if needed)
+  // Wait for dashboard content 
   const dashboard = await page.waitForSelector('text=Begin your OrthoPoP Journey', { timeout: 15000 }).catch(() => null);
 // Diagnostic output right before clicking
   console.log(await page.textContent('body'));
