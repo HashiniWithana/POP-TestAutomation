@@ -24,4 +24,28 @@ test('OrthoPoP login and select Point of Pain widget', async ({ page }) => {
   
   // Wait for navigation to next step
   await page.waitForLoadState('networkidle');
+
+   await page.getByRole('button', { name: 'Accept' }).click();
+  
+  await page.locator('div').filter({ hasText: 'Foot / Ankle / Leg' }).nth(5).click();
+ 
+    await page.getByRole('img', { name: 'Left' }).click();
+  await page.getByRole('button', { name: 'Continue' }).click();
+  await page.getByRole('button', { name: 'Close' }).click();
+  await page.getByRole('img', { name: 'Lateral View' }).click();
+  await page.getByRole('img', { name: 'layer' }).click();
+  await page.getByTitle('Muscle').click();
+
+ 
+
+  await page.locator('canvas').dblclick({ position: { x: 378, y: 73 } });
+
+  const canvas = page.locator('canvas');
+await expect(canvas).toBeVisible({ timeout: 10000 });
+
+ // Only click Proceed when it is visible
+  await expect(page.getByRole('button', { name: 'Proceed' })).toBeVisible({ timeout: 15000 });
+  await page.getByRole('button', { name: 'Proceed' }).click();
+await page.waitForLoadState('networkidle');
+  
 });
