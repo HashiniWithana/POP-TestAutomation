@@ -3,19 +3,25 @@ import { test, expect } from '@playwright/test';
 test('OrthoPoP login and select Point of Pain widget', async ({ page }) => {
   await page.goto('https://orthopop-dev.brainweber.net/login');
 
+  // Wait for login form to be fully loaded
+  await page.waitForLoadState('networkidle');
+  
   // Fill in credentials and submit form
-  await page.getByRole('textbox', { name: /username/i }).fill('hashini_qa');
-  await page.getByRole('textbox', { name: /password/i }).fill('Hashini@123');
-  await page.getByRole('button', { name: /log in/i }).click();
+  await page.getByLabel('Username').fill('hashini_qa');
+  await page.getByLabel('Password').fill('Hashini@123');
+  
+  // Click login button and wait for navigation
+  await Promise.all([
+    page.waitForURL('**/dashboard/**', { timeout: 15000 }),
+    page.getByRole('button', { name: /log in/i }).click()
+  ]);
 
-  // Wait for dashboard content 
-  const dashboard = await page.waitForSelector('text=Begin your OrthoPoP Journey', { timeout: 15000 }).catch(() => null);
-// Diagnostic output right before clicking
-  console.log(await page.textContent('body'));
-  await page.screenshot({ path: 'pain-debug.png', fullPage: true });
-
-  // Try a container selector for robustness
-  await page.locator('div.cursor-pointer:has-text("Point of Pain")').first().click();
-
- // await page.getByRole('button', { name: 'Accept' }).click();
+  // Wait for dashboard content to load
+  await page.waitForSelector('text=Begin your OrthoPoP Journey', { timeout: 15000 });
+  
+  // Click on the "Point of Pain" card - the entire card is clickable
+  await page.locator('div.cursor-pointer').filter({ hasText: 'Point of Pain' }).click();
+  
+  // Wait for navigation to next step
+  await page.waitForLoadState('networkidle');
 });
