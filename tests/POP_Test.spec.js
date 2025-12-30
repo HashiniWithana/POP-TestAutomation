@@ -47,5 +47,12 @@ await expect(canvas).toBeVisible({ timeout: 10000 });
   await expect(page.getByRole('button', { name: 'Proceed' })).toBeVisible({ timeout: 15000 });
   await page.getByRole('button', { name: 'Proceed' }).click();
 await page.waitForLoadState('networkidle');
+
+
+const diagnosisText = await page.locator('.diagnosis-list').textContent();
+
+
+expect(diagnosisText.toLowerCase()).toContain('common peroneal nerve compression neuropathy');
   
+
 });
