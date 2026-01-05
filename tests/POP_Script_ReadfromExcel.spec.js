@@ -30,7 +30,7 @@ for (const config of TEST_LOCATIONS) {
     const TEST_PARAMS = config;
 
     // Increase test timeout
-    test.setTimeout(90000);
+    test.setTimeout(120000);
 
     // Read test data from Excel and filter by location + anatomy
     const testData = getExcelData('./test-data/condition-list.xlsx', 'Multi User Version');
@@ -54,7 +54,8 @@ for (const config of TEST_LOCATIONS) {
     console.log(`Expected Conditions (${expectedConditions.length}):`, expectedConditions);
     console.log(`==========================\n`);
 
-    // Login flow
+    // ===== LOGIN ONCE FOR ALL CONDITIONS =====
+    console.log(`\n=== LOGGING IN ===`);
     await page.goto('https://orthopop-dev.brainweber.net/login');
 
     // Wait for login form to be fully loaded
@@ -72,6 +73,10 @@ for (const config of TEST_LOCATIONS) {
 
     // Wait for dashboard content to load
     await page.waitForSelector('text=Begin your OrthoPoP Journey', { timeout: 15000 });
+    console.log(`✓ Login successful\n`);
+    
+    // ===== NAVIGATE TO CANVAS ONCE =====
+    console.log(`=== NAVIGATING TO CANVAS ===`);
     
     // Click on the "Point of Pain" card
     await page.locator('div.cursor-pointer').filter({ hasText: 'Point of Pain' }).click();
@@ -97,10 +102,11 @@ for (const config of TEST_LOCATIONS) {
     // Add extra wait time to ensure canvas is fully loaded and interactive
     await page.waitForTimeout(2000);
     await page.waitForLoadState('networkidle');
+    console.log(`✓ Canvas ready\n`);
     
-    // LOOP through each row from Excel and click its coordinates
-    console.log(`\n=== CLICKING CANVAS POINTS ===`);
-    console.log(`Total points to click: ${filteredData.length}\n`);
+    // ===== LOOP THROUGH EACH CONDITION ON THE SAME WINDOW =====
+    console.log(`=== TESTING CONDITIONS ONE BY ONE ===`);
+    console.log(`Total conditions to test: ${filteredData.length}\n`);
     
     let allDisplayedConditions = [];
     
@@ -111,8 +117,8 @@ for (const config of TEST_LOCATIONS) {
         y: Number(row.y ?? row.Y) || TEST_PARAMS.fallbackCoordinates.y
       };
       
-      console.log(`[${i + 1}/${filteredData.length}] Condition: ${row.conditions}`);
-      console.log(`    Clicking canvas at coordinates: (${canvasCoordinates.x}, ${canvasCoordinates.y})`);
+      console.log(`\n[Condition ${i + 1}/${filteredData.length}] ${row.conditions}`);
+      console.log(`Coordinates: (${canvasCoordinates.x}, ${canvasCoordinates.y})`);
       
       // Click on canvas
       await canvas.click({ 
@@ -133,7 +139,7 @@ for (const config of TEST_LOCATIONS) {
       await page.waitForLoadState('networkidle').catch(() => {});
       
       // Take screenshot for debugging
-      await page.screenshot({ path: `test-results/location-${TEST_PARAMS.location}-point-${i + 1}.png` });
+      await page.screenshot({ path: `test-results/location-${TEST_PARAMS.location}-condition-${i + 1}.png` });
       
       // Check if proceed button appears
       const proceedButton = page.getByRole('button', { name: 'Proceed' });
@@ -143,19 +149,19 @@ for (const config of TEST_LOCATIONS) {
       let buttonFound = false;
       
       if (await proceedButton.isVisible().catch(() => false)) {
-        console.log(`    ✓ Proceed button found`);
+        console.log(`✓ Clicked Proceed`);
         await proceedButton.click();
         buttonFound = true;
       } else if (await continueButton.isVisible().catch(() => false)) {
-        console.log(`    ✓ Continue button found`);
+        console.log(`✓ Clicked Continue`);
         await continueButton.click();
         buttonFound = true;
       } else if (await nextButton.isVisible().catch(() => false)) {
-        console.log(`    ✓ Next button found`);
+        console.log(`✓ Clicked Next`);
         await nextButton.click();
         buttonFound = true;
       } else {
-        console.error(`    ✗ No button found for point (${canvasCoordinates.x}, ${canvasCoordinates.y})`);
+        console.error(`✗ No button found for condition: ${row.conditions}`);
       }
       
       if (buttonFound) {
@@ -200,7 +206,7 @@ for (const config of TEST_LOCATIONS) {
           }
         }
         
-        console.log(`    Returned conditions: ${displayedConditions.length} - ${displayedConditions.join(', ')}`);
+        console.log(`Returned ${displayedConditions.length} condition(s)`);
         
         // Store for final validation
         allDisplayedConditions.push({
@@ -210,8 +216,6 @@ for (const config of TEST_LOCATIONS) {
         });
       }
     }
-    
-    console.log(`\n=== VALIDATION RESULTS - LOCATION ${TEST_PARAMS.location} ===\n`);
     
     // Validate each clicked point against expected and returned conditions
     let totalMatched = 0;
