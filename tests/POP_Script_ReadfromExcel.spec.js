@@ -226,10 +226,10 @@ for (const config of TEST_LOCATIONS) {
       );
       
       if (isMatched) {
-        console.log(`         ✓ MATCHED - Found in: ${result.displayedConditions.join(', ')}`);
+        console.log(`MATCHED - Found in: ${result.displayedConditions.join(', ')}`);
         totalMatched++;
       } else {
-        console.log(`         ✗ MISSING - Returned conditions: ${result.displayedConditions.length > 0 ? result.displayedConditions.join(', ') : 'None'}`);
+        console.log(`MISSING - Returned conditions: ${result.displayedConditions.length > 0 ? result.displayedConditions.join(', ') : 'None'}`);
         totalMissing++;
       }
       console.log();
@@ -245,7 +245,7 @@ for (const config of TEST_LOCATIONS) {
       throw new Error(`${totalMissing} condition(s) failed validation for Location ${TEST_PARAMS.location}`);
     }
     
-    console.log(`✓ Location ${TEST_PARAMS.location} test completed successfully`);
+    console.log(`Location ${TEST_PARAMS.location} test completed successfully`);
   });
 }
 
