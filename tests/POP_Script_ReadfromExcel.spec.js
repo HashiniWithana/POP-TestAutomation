@@ -107,6 +107,14 @@ for (const config of TEST_LOCATIONS) {
     const canvas = page.locator('canvas');
     await expect(canvas).toBeVisible({ timeout: 20000 });
     
+    // For Location 2, pause to manually identify coordinates
+    // if (TEST_PARAMS.location === 2) {
+    //   console.log('\n⏸️  PAUSED FOR LOCATION 2 - Manually click on the correct spot on the canvas');
+    //   console.log('The browser will stay open. After clicking, note the coordinates and update the script.');
+    //   console.log('Press Ctrl+C to stop the test.\n');
+    //   await page.pause();
+    // }
+    
     // Click on canvas at coordinates read from Excel
     await canvas.click({ 
       position: canvasCoordinates,
@@ -131,7 +139,8 @@ for (const config of TEST_LOCATIONS) {
       await continueButton.click();
     } else if (await nextButton.isVisible().catch(() => false)) {
       await nextButton.click();
-    } else {
+   } 
+    else {
       console.error(`ERROR: No Proceed/Continue/Next button found for Location ${TEST_PARAMS.location}`);
       console.error(`Coordinates used: (${canvasCoordinates.x}, ${canvasCoordinates.y})`);
       throw new Error(`No Proceed/Continue/Next button found. Check screenshot at test-results/location-${TEST_PARAMS.location}-after-canvas-click.png`);

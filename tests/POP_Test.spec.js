@@ -9,9 +9,9 @@ function getExcelData(filePath, sheetName = null) {
 }
 
 test('OrthoPoP login and select Point of Pain widget', async ({ page }) => {
-  // ====================
-  // TEST PARAMETERS - UPDATE THESE FOR DIFFERENT TEST CASES
-  // ====================
+
+  // Check for the specific cordinates
+  
   const TEST_PARAMS = {
     location: 1,
     primaryAnatomy: 'Foot/Ankle/Leg',
@@ -77,17 +77,61 @@ test('OrthoPoP login and select Point of Pain widget', async ({ page }) => {
   const canvas = page.locator('canvas');
   await expect(canvas).toBeVisible({ timeout: 20000 });
   
+  console.log('Canvas is visible, attempting click...');
+  
   // Click on canvas at configured coordinates
   await canvas.click({ 
     position: TEST_PARAMS.canvasCoordinates,
     clickCount: 2 
   });
 
-  // Wait for loading and proceed
-  await page.waitForTimeout(2000);
+  console.log(`Clicked canvas at (${TEST_PARAMS.canvasCoordinates.x}, ${TEST_PARAMS.canvasCoordinates.y})`);
+
+  // Wait for loading and proceed - with better error handling
+  await page.waitForTimeout(3000); // Increased wait time
   await page.waitForLoadState('networkidle');
-  await expect(page.getByRole('button', { name: 'Proceed' })).toBeVisible({ timeout: 60000 });
-  await page.getByRole('button', { name: 'Proceed' }).click();
+  
+  // Check if Proceed button appears, if not try alternative approaches
+  const proceedButton = page.getByRole('button', { name: 'Proceed' });
+  const continueButton = page.getByRole('button', { name: 'Continue' });
+  const nextButton = page.getByRole('button', { name: 'Next' });
+  
+  try {
+    await expect(proceedButton).toBeVisible({ timeout: 30000 });
+    console.log('Found Proceed button');
+    await proceedButton.click();
+  } catch (error1) {
+    console.log('Proceed button not found, trying Continue...');
+    try {
+      await expect(continueButton).toBeVisible({ timeout: 10000 });
+      console.log('Found Continue button instead');
+      await continueButton.click();
+    } catch (error2) {
+      console.log('Continue button not found, trying Next...');
+      try {
+        await expect(nextButton).toBeVisible({ timeout: 10000 });
+        console.log('Found Next button instead');
+        await nextButton.click();
+      } catch (error3) {
+        // Take screenshot for debugging
+        await page.screenshot({ path: 'debug-no-proceed-button.png', fullPage: true });
+        
+        // Check what buttons are actually visible
+        const allButtons = await page.locator('button').all();
+        const buttonTexts = [];
+        for (const btn of allButtons) {
+          const text = await btn.textContent();
+          const isVisible = await btn.isVisible();
+          if (isVisible && text?.trim()) {
+            buttonTexts.push(text.trim());
+          }
+        }
+        console.log('Available visible buttons:', buttonTexts);
+        
+        throw new Error(`No Proceed/Continue/Next button found after canvas click. Available buttons: ${buttonTexts.join(', ')}`);
+      }
+    }
+  }
   await page.waitForLoadState('networkidle');
   await page.waitForTimeout(2000);
 
@@ -166,5 +210,5 @@ test('OrthoPoP login and select Point of Pain widget', async ({ page }) => {
   }
   
   console.log(`==========================\n`);
-  console.log('✅ Test completed successfully');
+  console.log('Test completed successfully');
 });
